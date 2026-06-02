@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banco de Horas — Gummy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+/* ── Gummy Design System ─────────────────────────────────── */
+:root {
+  --azul-forte:  #2B2BE6;
+  --azul-escuro: #1515B8;
+  --azul-claro:  #EEF0FF;
+  --azul-secao:  #E6F1FB;
+  --roxo-sutil:  #EEEDFE;
+  --amarelo:     #E8FF00;
+  --creme:       #FAFAF2;
+  --cinza-claro: #F7F7F7;
+  --branco:      #FFFFFF;
+  --texto:       #1A1A1A;
+  --texto2:      #888888;
+  --azul-txt:    #2B2BE6;
+  --azul-esc-f:  #0C447C;
+  --azul-med-f:  #3C3489;
+  --borda:       #CCCCCC;
+  --warn-bg:     #FEF3C7;
+  --warn-txt:    #92400E;
+  --danger-bg:   #FEE2E2;
+  --danger-txt:  #7F1D1D;
+  --ok-bg:       #DCFCE7;
+  --ok-txt:      #14532D;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Red Hat Display', sans-serif;
+  background: var(--cinza-claro);
+  color: var(--texto);
+  font-size: 14px;
+  line-height: 1.5;
+}
+/* ── Layout ──────────────────────────────────────────────── */
+.app { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+/* ── Header ──────────────────────────────────────────────── */
+.header {
+  background: var(--azul-forte);
+  padding: 20px 24px 16px;
+  margin-bottom: 0;
+}
+.header-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.header h1 {
+  font-size: 18px; font-weight: 700;
+  color: var(--amarelo); letter-spacing: .01em;
+}
+.header-sub {
+  background: var(--amarelo);
+  padding: 6px 24px;
+  font-size: 11px; font-weight: 500;
+  color: var(--texto);
+  letter-spacing: .03em;
+}
+.badge-fifo {
+  background: var(--amarelo);
+  color: var(--azul-escuro);
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 2px;
+  letter-spacing: .04em; text-transform: uppercase;
+}
+.atualizado { font-size: 10px; color: rgba(232,255,0,.7); margin-top: 4px; }
+/* ── Toolbar ──────────────────────────────────────────────── */
+.toolbar {
+  background: var(--branco);
+  border-bottom: 1px solid var(--borda);
+  padding: 12px 24px;
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+}
+.toolbar input, .toolbar select {
+  height: 32px; padding: 0 10px;
+  border: 1px solid var(--borda);
+  font-family: 'Red Hat Display', sans-serif;
+  font-size: 12px; color: var(--texto);
+  background: var(--creme); outline: none;
+}
+.toolbar input:focus, .toolbar select:focus {
+  border-color: var(--azul-forte);
+}
+/* ── Tabs ──────────────────────────────────────────────────── */
+.tabs {
+  background: var(--branco);
+  border-bottom: 2px solid var(--azul-forte);
+  padding: 0 24px;
+  display: flex; gap: 0;
+}
+.tab {
+  padding: 10px 20px; font-size: 12px; font-weight: 500;
+  font-family: 'Red Hat Display', sans-serif;
+  border: none; background: none;
+  color: var(--texto2); cursor: pointer;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+  letter-spacing: .02em;
+}
+.tab.active {
+  color: var(--azul-forte); border-bottom-color: var(--azul-forte);
+  font-weight: 700;
+}
+.tab:hover:not(.active) { color: var(--texto); background: var(--azul-claro); }
+/* ── Content ───────────────────────────────────────────────── */
+.content { padding: 20px 0; }
+/* ── Metric cards ──────────────────────────────────────────── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px; margin-bottom: 20px;
+  border: 1px solid var(--borda);
+  background: var(--borda);
+}
+.card {
+  background: var(--branco);
+  padding: 16px 20px;
+}
+.card-label {
+  font-size: 10px; font-weight: 700; color: var(--texto2);
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px;
+}
+.card-value { font-size: 24px; font-weight: 700; color: var(--texto); }
+.card-value.warn  { color: var(--azul-forte); }
+.card-value.alert { color: #DC2626; }
+.card-value.ok    { color: #16A34A; }
+/* ── Section header (like Excel's section header) ─────────── */
+.section-hdr {
+  background: var(--azul-secao);
+  color: var(--azul-esc-f);
+  font-size: 11px; font-weight: 700;
+  padding: 8px 16px;
+  letter-spacing: .04em; text-transform: uppercase;
+  border-left: 3px solid var(--azul-forte);
+  margin-bottom: 0;
+}
+/* ── Chart box ─────────────────────────────────────────────── */
+.chart-box {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  margin-bottom: 16px;
+}
+.chart-inner { padding: 16px 20px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--texto2); }
+.legend-sq { width: 10px; height: 10px; border-radius: 1px; flex-shrink: 0; }
+/* ── Table ─────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; margin-bottom: 16px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+thead th {
+  background: var(--azul-escuro);
+  color: var(--branco);
+  font-size: 10px; font-weight: 700;
+  text-align: left; padding: 8px 12px;
+  white-space: nowrap; letter-spacing: .04em; text-transform: uppercase;
+}
+tbody td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--borda);
+  vertical-align: middle;
+}
+tbody tr:nth-child(even) td { background: var(--azul-claro); }
+tbody tr:nth-child(odd)  td { background: var(--branco); }
+tbody tr:hover td { background: var(--roxo-sutil); }
+/* ── Pills ─────────────────────────────────────────────────── */
+.pill {
+  display: inline-block; padding: 2px 8px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .03em; white-space: nowrap;
+}
+.pill-warn   { background: var(--amarelo); color: var(--azul-escuro); }
+.pill-danger { background: var(--azul-forte); color: var(--amarelo); }
+.pill-none   { background: var(--cinza-claro); color: var(--texto2); }
+/* ── Bar ───────────────────────────────────────────────────── */
+.bar-wrap { display: flex; align-items: center; gap: 8px; }
+.bar-bg   { height: 6px; flex: 1; min-width: 60px; background: var(--azul-claro); }
+.bar-fill { height: 100%; }
+/* ── Month group row ───────────────────────────────────────── */
+.month-row td {
+  background: var(--roxo-sutil) !important;
+  color: var(--azul-med-f);
+  font-weight: 700; font-size: 12px;
+  padding: 8px 12px;
+}
+.month-row td .alert { color: var(--azul-forte); }
+.no-data { text-align: center; padding: 32px; color: var(--texto2); font-size: 13px; }
+.indent { padding-left: 28px !important; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <h1>Banco de Horas</h1>
+      <span class="badge-fifo">FIFO</span>
+    </div>
+    <div class="atualizado" id="atualizado"></div>
+  </div>
+  <div class="header-sub">GUMMY CONTEÚDO INTELIGENTE &nbsp;·&nbsp; SALDO A VENCER POR COLABORADOR E MÊS</div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Buscar colaborador..." style="width:200px">
+    <select id="mes-filter"><option value="">Todos os meses</option></select>
+    <select id="sort-by">
+      <option value="nome">Ordenar por nome</option>
+      <option value="vence-desc">Maior saldo a vencer</option>
+      <option value="acum-desc">Maior saldo acumulado</option>
+    </select>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="visao-geral">Visão geral</button>
+    <button class="tab" data-tab="por-colaborador">Por colaborador</button>
+    <button class="tab" data-tab="timeline">Timeline</button>
+  </div>
+
+  <div class="content">
+    <div id="tab-visao-geral"></div>
+    <div id="tab-por-colaborador" style="display:none"></div>
+    <div id="tab-timeline" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+const DATA = [{"name": "Bruna Granado", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 1418, "comp_min": 0, "saldo_min": 1418, "acum_min": 1418, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 1363, "comp_min": 503, "saldo_min": 860, "acum_min": 2278, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 1146, "comp_min": 606, "saldo_min": 540, "acum_min": 2818, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 1073, "comp_min": 28, "saldo_min": 1045, "acum_min": 3863, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 1418, "comp_min": 188, "saldo_min": 1230, "acum_min": 5093, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 1490, "comp_min": 1127, "saldo_min": 363, "acum_min": 5456, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5456, "vence_min": 1418}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5456, "vence_min": 860}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5456, "vence_min": 540}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5456, "vence_min": 1045}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5456, "vence_min": 1230}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5456, "vence_min": 363}, {"label": "Dez/2026", "sort": "2026-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5456, "vence_min": 0}]}, {"name": "Cibele Gomes", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 73, "comp_min": 0, "saldo_min": 73, "acum_min": 73, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 649, "comp_min": 248, "saldo_min": 401, "acum_min": 474, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 194, "comp_min": 474, "saldo_min": -280, "acum_min": 194, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 180, "comp_min": 120, "saldo_min": 60, "acum_min": 254, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 210, "comp_min": 60, "saldo_min": 150, "acum_min": 404, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 0, "comp_min": 186, "saldo_min": -186, "acum_min": 218, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 218, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 218, "vence_min": 8}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 218, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 218, "vence_min": 60}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 218, "vence_min": 150}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 218, "vence_min": 0}]}, {"name": "Cris Meurer", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 0, "comp_min": 60, "saldo_min": -60, "acum_min": -60, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 264, "comp_min": 61, "saldo_min": 203, "acum_min": 143, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 205, "comp_min": 289, "saldo_min": -84, "acum_min": 59, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 213, "comp_min": 11, "saldo_min": 202, "acum_min": 261, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 261, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 261, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 261, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 261, "vence_min": 119}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 261, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 261, "vence_min": 202}]}, {"name": "Guilherme Muniz", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 54, "comp_min": 0, "saldo_min": 54, "acum_min": 54, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 0}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 54}]}, {"name": "Gustavo Mafra", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 54, "comp_min": 0, "saldo_min": 54, "acum_min": 54, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 0}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 54, "vence_min": 54}]}, {"name": "Iasmin Ferreira", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 505, "comp_min": 22, "saldo_min": 483, "acum_min": 483, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 275, "comp_min": 280, "saldo_min": -5, "acum_min": 478, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 175, "comp_min": 154, "saldo_min": 21, "acum_min": 499, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 167, "comp_min": 233, "saldo_min": -66, "acum_min": 433, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 433, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 433, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 433, "vence_min": 412}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 433, "vence_min": 0}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 433, "vence_min": 21}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 433, "vence_min": 0}]}, {"name": "Ingrid Rocha", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 1, "comp_min": 0, "saldo_min": 1, "acum_min": 1, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 74, "comp_min": 75, "saldo_min": -1, "acum_min": 0, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 241, "comp_min": 240, "saldo_min": 1, "acum_min": 1, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 1, "comp_min": 0, "saldo_min": 1, "acum_min": 2, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 270, "comp_min": 270, "saldo_min": 0, "acum_min": 2, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 1, "comp_min": 0, "saldo_min": 1, "acum_min": 3, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 3, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 3, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 3, "vence_min": 1}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 3, "vence_min": 1}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 3, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 3, "vence_min": 1}]}, {"name": "Kathyleen Machado", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 136, "comp_min": 22, "saldo_min": 114, "acum_min": 114, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 73, "comp_min": 0, "saldo_min": 73, "acum_min": 187, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 116, "comp_min": 0, "saldo_min": 116, "acum_min": 303, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 153, "comp_min": 8, "saldo_min": 145, "acum_min": 448, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 448, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 448, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 448, "vence_min": 114}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 448, "vence_min": 73}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 448, "vence_min": 116}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 448, "vence_min": 145}]}, {"name": "Leticia Lima", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 212, "comp_min": 0, "saldo_min": 212, "acum_min": 212, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 173, "comp_min": 58, "saldo_min": 115, "acum_min": 327, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 548, "comp_min": 240, "saldo_min": 308, "acum_min": 635, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 361, "comp_min": 189, "saldo_min": 172, "acum_min": 807, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 208, "comp_min": 0, "saldo_min": 208, "acum_min": 1015, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 312, "comp_min": 16, "saldo_min": 296, "acum_min": 1311, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 1311, "vence_min": 212}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 1311, "vence_min": 115}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 1311, "vence_min": 308}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 1311, "vence_min": 172}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 1311, "vence_min": 208}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 1311, "vence_min": 296}]}, {"name": "Luan Carlos", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 160, "comp_min": 7, "saldo_min": 153, "acum_min": 153, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 271, "comp_min": 262, "saldo_min": 9, "acum_min": 162, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 14, "comp_min": 0, "saldo_min": 14, "acum_min": 176, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 176, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 74, "comp_min": 189, "saldo_min": -115, "acum_min": 61, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 61, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 61, "vence_min": 38}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 61, "vence_min": 9}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 61, "vence_min": 14}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 61, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 61, "vence_min": 0}]}, {"name": "Luis Paulo Isnard", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 258, "comp_min": 60, "saldo_min": 198, "acum_min": 198, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 282, "comp_min": 240, "saldo_min": 42, "acum_min": 240, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 231, "comp_min": 480, "saldo_min": -249, "acum_min": -9, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 267, "comp_min": 60, "saldo_min": 207, "acum_min": 198, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 295, "comp_min": 0, "saldo_min": 295, "acum_min": 493, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 493, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 493, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 493, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 493, "vence_min": 0}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 493, "vence_min": 207}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 493, "vence_min": 295}]}, {"name": "Marcos Vini Martins", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}]}, {"name": "Mayara Oliveira", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 3923, "comp_min": 0, "saldo_min": 3923, "acum_min": 3923, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 845, "comp_min": 960, "saldo_min": -115, "acum_min": 3808, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 474, "comp_min": 36, "saldo_min": 438, "acum_min": 4246, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 435, "comp_min": 20, "saldo_min": 415, "acum_min": 4661, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 329, "comp_min": 0, "saldo_min": 329, "acum_min": 4990, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 106, "comp_min": 29, "saldo_min": 77, "acum_min": 5067, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5067, "vence_min": 3808}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5067, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5067, "vence_min": 438}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5067, "vence_min": 415}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5067, "vence_min": 329}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 5067, "vence_min": 77}]}, {"name": "Melina Zanotto", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 1, "comp_min": 0, "saldo_min": 1, "acum_min": 1, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 63, "comp_min": 60, "saldo_min": 3, "acum_min": 4, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 267, "comp_min": 240, "saldo_min": 27, "acum_min": 31, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 6, "comp_min": 0, "saldo_min": 6, "acum_min": 37, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 37, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 42, "comp_min": 119, "saldo_min": -77, "acum_min": -40, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -40, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -40, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -40, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -40, "vence_min": 0}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -40, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -40, "vence_min": 0}]}, {"name": "Michael Alves", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}]}, {"name": "Milena Moreira", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}]}, {"name": "Morena Tavares", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 349, "comp_min": 0, "saldo_min": 349, "acum_min": 349, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 1069, "comp_min": 0, "saldo_min": 1069, "acum_min": 1418, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 594, "comp_min": 424, "saldo_min": 170, "acum_min": 1588, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 699, "comp_min": 413, "saldo_min": 286, "acum_min": 1874, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 529, "comp_min": 604, "saldo_min": -75, "acum_min": 1799, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 415, "comp_min": 111, "saldo_min": 304, "acum_min": 2103, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 2103, "vence_min": 274}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 2103, "vence_min": 1069}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 2103, "vence_min": 170}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 2103, "vence_min": 286}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 2103, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 2103, "vence_min": 304}]}, {"name": "Raphael Torres", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 97, "comp_min": 0, "saldo_min": 97, "acum_min": 97, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 53, "comp_min": 0, "saldo_min": 53, "acum_min": 150, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 59, "comp_min": 0, "saldo_min": 59, "acum_min": 209, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 90, "comp_min": 0, "saldo_min": 90, "acum_min": 299, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 13, "comp_min": 292, "saldo_min": -279, "acum_min": 20, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 72, "comp_min": 0, "saldo_min": 72, "acum_min": 92, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 92, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 92, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 92, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 92, "vence_min": 20}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 92, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 92, "vence_min": 72}]}, {"name": "Robson Junior", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 87, "comp_min": 0, "saldo_min": 87, "acum_min": 87, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 49, "comp_min": 0, "saldo_min": 49, "acum_min": 136, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 145, "comp_min": 0, "saldo_min": 145, "acum_min": 281, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 97, "comp_min": 70, "saldo_min": 27, "acum_min": 308, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 168, "comp_min": 29, "saldo_min": 139, "acum_min": 447, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 43, "comp_min": 43, "saldo_min": 0, "acum_min": 447, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 447, "vence_min": 87}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 447, "vence_min": 49}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 447, "vence_min": 145}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 447, "vence_min": 27}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 447, "vence_min": 139}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 447, "vence_min": 0}]}, {"name": "Sara Xavier", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 102, "comp_min": 59, "saldo_min": 43, "acum_min": 43, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 43, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 43, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 43, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 43, "vence_min": 0}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 43, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 43, "vence_min": 43}]}, {"name": "Vitor Rainieri", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 123, "comp_min": 131, "saldo_min": -8, "acum_min": -8, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -8, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -8, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -8, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -8, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -8, "vence_min": 0}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -8, "vence_min": 0}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": -8, "vence_min": 0}]}, {"name": "Vitória Messias", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 0, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 265, "comp_min": 39, "saldo_min": 226, "acum_min": 226, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 439, "comp_min": 6, "saldo_min": 433, "acum_min": 659, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 327, "comp_min": 87, "saldo_min": 240, "acum_min": 899, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 159, "comp_min": 154, "saldo_min": 5, "acum_min": 904, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 153, "comp_min": 368, "saldo_min": -215, "acum_min": 689, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 689, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 689, "vence_min": 11}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 689, "vence_min": 433}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 689, "vence_min": 240}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 689, "vence_min": 5}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 689, "vence_min": 0}]}, {"name": "Élyde Cerqueria", "months": [{"label": "Dez/2025", "sort": "2025-12", "extras_min": 10, "comp_min": 0, "saldo_min": 10, "acum_min": 10, "vence_min": 0}, {"label": "Jan/2026", "sort": "2026-01", "extras_min": 373, "comp_min": 324, "saldo_min": 49, "acum_min": 59, "vence_min": 0}, {"label": "Fev/2026", "sort": "2026-02", "extras_min": 300, "comp_min": 334, "saldo_min": -34, "acum_min": 25, "vence_min": 0}, {"label": "Mar/2026", "sort": "2026-03", "extras_min": 38, "comp_min": 53, "saldo_min": -15, "acum_min": 10, "vence_min": 0}, {"label": "Abr/2026", "sort": "2026-04", "extras_min": 69, "comp_min": 43, "saldo_min": 26, "acum_min": 36, "vence_min": 0}, {"label": "Mai/2026", "sort": "2026-05", "extras_min": 222, "comp_min": 233, "saldo_min": -11, "acum_min": 25, "vence_min": 0}, {"label": "Jun/2026", "sort": "2026-06", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 25, "vence_min": 0}, {"label": "Jul/2026", "sort": "2026-07", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 25, "vence_min": 0}, {"label": "Ago/2026", "sort": "2026-08", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 25, "vence_min": 0}, {"label": "Set/2026", "sort": "2026-09", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 25, "vence_min": 0}, {"label": "Out/2026", "sort": "2026-10", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 25, "vence_min": 25}, {"label": "Nov/2026", "sort": "2026-11", "extras_min": 0, "comp_min": 0, "saldo_min": 0, "acum_min": 25, "vence_min": 0}]}];
+document.getElementById('atualizado').textContent = 'Atualizado em 02/06/2026 às 14:00';
+
+const ALL_MONTHS = [...new Set(DATA.flatMap(c => c.months.map(m => m.sort)))].sort();
+const MONTH_LABELS = {};
+DATA.forEach(c => c.months.forEach(m => { MONTH_LABELS[m.sort] = m.label; }));
+
+const sel = document.getElementById('mes-filter');
+ALL_MONTHS.forEach(s => { const o=document.createElement('option'); o.value=s; o.textContent=MONTH_LABELS[s]; sel.appendChild(o); });
+
+let activeTab='visao-geral', cGeral=null, cTimeline=null;
+
+function fmt(min) {
+  if(!min) return '—';
+  const h=Math.floor(Math.abs(min)/60), m=Math.abs(min)%60, sg=min<0?'-':'';
+  return sg+h+'h'+(m>0?String(m).padStart(2,'0'):'');
+}
+
+function getFiltered() {
+  const q=document.getElementById('search').value.toLowerCase().trim();
+  const so=document.getElementById('sort-by').value;
+  let d=DATA.filter(c=>!q||c.name.toLowerCase().includes(q));
+  if(so==='vence-desc') d=[...d].sort((a,b)=>b.months.reduce((s,m)=>s+m.vence_min,0)-a.months.reduce((s,m)=>s+m.vence_min,0));
+  else if(so==='acum-desc') d=[...d].sort((a,b)=>(b.months.at(-1)?.acum_min||0)-(a.months.at(-1)?.acum_min||0));
+  return d;
+}
+
+function switchTab(t) {
+  activeTab=t;
+  ['visao-geral','por-colaborador','timeline'].forEach(x => document.getElementById('tab-'+x).style.display=x===t?'':'none');
+  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===t));
+  render();
+}
+
+document.querySelectorAll('.tab').forEach(el=>el.addEventListener('click',()=>switchTab(el.dataset.tab)));
+['search','mes-filter','sort-by'].forEach(id=>document.getElementById(id).addEventListener('change',render));
+document.getElementById('search').addEventListener('input',render);
+
+// Gummy chart colors
+const C_AZUL   = '#2B2BE6';
+const C_AMARELO = '#E8FF00';
+const C_AZUL_E  = '#1515B8';
+const C_CLARO   = '#EEF0FF';
+
+function renderVisaoGeral(data) {
+  const vpm={};
+  ALL_MONTHS.forEach(s=>vpm[s]=0);
+  data.forEach(c=>c.months.forEach(m=>{if(m.vence_min>0) vpm[m.sort]=(vpm[m.sort]||0)+m.vence_min;}));
+
+  const totalV=Object.values(vpm).reduce((a,b)=>a+b,0);
+  const comV=data.filter(c=>c.months.some(m=>m.vence_min>0)).length;
+  const pico=ALL_MONTHS.reduce((a,b)=>vpm[b]>vpm[a]?b:a,ALL_MONTHS[0]);
+  const totalA=data.reduce((s,c)=>s+(c.months.at(-1)?.acum_min||0),0);
+
+  const top=[...data].map(c=>({name:c.name,total:c.months.reduce((s,m)=>s+m.vence_min,0),acum:c.months.at(-1)?.acum_min||0}))
+    .filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+  const maxV=Math.max(...top.map(x=>x.total),1);
+
+  const labels=ALL_MONTHS.map(s=>MONTH_LABELS[s]);
+  const vH=ALL_MONTHS.map(s=>+(vpm[s]/60).toFixed(1));
+  const aM=ALL_MONTHS.map(s=>{
+    const vs=data.map(c=>{const m=c.months.find(x=>x.sort===s);return m?m.acum_min:0;});
+    return +(vs.reduce((a,b)=>a+b,0)/Math.max(vs.length,1)/60).toFixed(1);
+  });
+
+  document.getElementById('tab-visao-geral').innerHTML=`
+    <div class="cards">
+      <div class="card"><div class="card-label">Total a vencer</div><div class="card-value warn">${fmt(totalV)}</div></div>
+      <div class="card"><div class="card-label">Colaboradores afetados</div><div class="card-value">${comV} de ${data.length}</div></div>
+      <div class="card"><div class="card-label">Mês de pico</div><div class="card-value warn">${MONTH_LABELS[pico]||'—'}</div></div>
+      <div class="card"><div class="card-label">Saldo acumulado total</div><div class="card-value ok">${fmt(totalA)}</div></div>
+    </div>
+    <div class="chart-box">
+      <div class="section-hdr">Horas a vencer por mês</div>
+      <div class="chart-inner">
+        <div class="legend">
+          <span class="legend-item"><span class="legend-sq" style="background:${C_AZUL}"></span>Horas a vencer</span>
+          <span class="legend-item"><span class="legend-sq" style="background:${C_CLARO};border:1px solid ${C_AZUL}"></span>Saldo acum. médio</span>
+        </div>
+        <div style="position:relative;height:230px"><canvas id="chart-geral" role="img" aria-label="Horas a vencer por mês"></canvas></div>
+      </div>
+    </div>
+    <div class="section-hdr">Ranking — maiores saldos a vencer</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Colaborador</th><th>Total a vencer</th><th>Distribuição</th><th>Saldo acum.</th></tr></thead>
+        <tbody>${top.slice(0,15).map(x=>`
+          <tr>
+            <td style="font-weight:500">${x.name}</td>
+            <td><span class="pill ${x.total>300?'pill-danger':'pill-warn'}">${fmt(x.total)}</span></td>
+            <td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(x.total/maxV*100)}%;background:${C_AZUL}"></div></div></div></td>
+            <td style="color:var(--azul-med-f);font-weight:500">${fmt(x.acum)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  if(cGeral) cGeral.destroy();
+  cGeral=new Chart(document.getElementById('chart-geral'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Horas a vencer',data:vH,backgroundColor:C_AZUL,borderRadius:0,order:1},
+      {label:'Saldo médio',data:aM,type:'line',borderColor:C_AZUL,backgroundColor:'rgba(43,43,230,0.06)',
+       borderDash:[4,3],fill:true,tension:0.3,borderWidth:1.5,pointRadius:3,
+       pointBackgroundColor:C_AMARELO,pointBorderColor:C_AZUL,pointBorderWidth:1.5,order:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{autoSkip:false,maxRotation:45,font:{size:10,family:'Red Hat Display'}},grid:{display:false}},
+        y:{ticks:{callback:v=>v+'h',font:{size:10,family:'Red Hat Display'}},grid:{color:'rgba(43,43,230,0.07)'}}
+      }
+    }
+  });
+}
+
+function renderPorColaborador(data) {
+  const mes=document.getElementById('mes-filter').value;
+  const meses=mes?[mes]:ALL_MONTHS;
+  const rows=data.map(c=>{
+    const tv=c.months.filter(m=>meses.includes(m.sort)).reduce((s,m)=>s+m.vence_min,0);
+    const la=c.months.at(-1)?.acum_min||0;
+    return`<tr>
+      <td style="font-weight:700;color:var(--azul-forte)">${c.name}</td>
+      <td><span class="pill ${tv>300?'pill-danger':tv>0?'pill-warn':'pill-none'}">${fmt(tv)}</span></td>
+      ${meses.map(s=>{const m=c.months.find(x=>x.sort===s);const v=m?m.vence_min:0;
+        return`<td style="text-align:center">${v>0?`<span class="pill ${v>300?'pill-danger':'pill-warn'}">${fmt(v)}</span>`:'<span style="color:var(--borda)">—</span>'}</td>`;
+      }).join('')}
+      <td style="color:var(--azul-med-f);font-weight:500">${fmt(la)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tab-por-colaborador').innerHTML=`
+    <div class="section-hdr">Saldo a vencer por colaborador e mês</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="min-width:160px">Colaborador</th><th>Total a vencer</th>
+          ${meses.map(s=>`<th style="text-align:center">${MONTH_LABELS[s]}</th>`).join('')}
+          <th>Saldo acum.</th>
+        </tr></thead>
+        <tbody>${rows||'<tr><td colspan="20" class="no-data">Nenhum colaborador encontrado</td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderTimeline(data) {
+  const vpm={};
+  ALL_MONTHS.forEach(s=>vpm[s]=0);
+  data.forEach(c=>c.months.forEach(m=>{if(m.vence_min>0) vpm[m.sort]=(vpm[m.sort]||0)+m.vence_min;}));
+
+  let acc=0;
+  const cumul=ALL_MONTHS.map(s=>{acc+=vpm[s];return +(acc/60).toFixed(1);});
+  const labels=ALL_MONTHS.map(s=>MONTH_LABELS[s]);
+
+  const mes=document.getElementById('mes-filter').value;
+  const meses=mes?[mes]:ALL_MONTHS;
+  let rows='';
+  meses.forEach(s=>{
+    const lista=data.filter(c=>c.months.some(m=>m.sort===s&&m.vence_min>0));
+    if(!lista.length) return;
+    const tot=lista.reduce((sum,c)=>{const m=c.months.find(x=>x.sort===s);return sum+(m?m.vence_min:0);},0);
+    rows+=`<tr class="month-row"><td colspan="3">${MONTH_LABELS[s]} <span class="alert">— ${fmt(tot)} a vencer</span></td></tr>`;
+    lista.forEach(c=>{
+      const mi=c.months.findIndex(x=>x.sort===s);
+      const origem=mi>=6?c.months[mi-6]?.label||'—':'—';
+      const m=c.months[mi];
+      rows+=`<tr><td class="indent" style="font-weight:500">${c.name}</td>
+        <td><span class="pill ${m.vence_min>300?'pill-danger':'pill-warn'}">${fmt(m.vence_min)}</span></td>
+        <td style="color:var(--texto2);font-size:11px">crédito de ${origem}</td></tr>`;
+    });
+  });
+
+  document.getElementById('tab-timeline').innerHTML=`
+    <div class="chart-box">
+      <div class="section-hdr">Horas a vencer — acumulado</div>
+      <div class="chart-inner">
+        <div style="position:relative;height:220px"><canvas id="chart-timeline" role="img" aria-label="Horas a vencer acumuladas"></canvas></div>
+      </div>
+    </div>
+    <div class="section-hdr">Detalhe mensal</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Colaborador</th><th>Horas a vencer</th><th>Mês de origem</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="3" class="no-data">Nenhum vencimento no período selecionado</td></tr>'}</tbody>
+      </table>
+    </div>`;
+
+  if(cTimeline) cTimeline.destroy();
+  cTimeline=new Chart(document.getElementById('chart-timeline'),{
+    type:'line',
+    data:{labels,datasets:[{
+      label:'Acumulado',data:cumul,
+      borderColor:C_AZUL,backgroundColor:'rgba(43,43,230,0.06)',
+      fill:true,tension:0.3,borderWidth:2,pointRadius:4,
+      pointBackgroundColor:C_AMARELO,pointBorderColor:C_AZUL,pointBorderWidth:1.5
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{autoSkip:false,maxRotation:45,font:{size:10,family:'Red Hat Display'}},grid:{display:false}},
+        y:{ticks:{callback:v=>v+'h',font:{size:10,family:'Red Hat Display'}},grid:{color:'rgba(43,43,230,0.07)'}}
+      }
+    }
+  });
+}
+
+function render() {
+  const d=getFiltered();
+  if(activeTab==='visao-geral') renderVisaoGeral(d);
+  else if(activeTab==='por-colaborador') renderPorColaborador(d);
+  else renderTimeline(d);
+}
+
+render();
+</script>
+</body>
+</html>
